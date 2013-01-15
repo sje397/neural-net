@@ -5,7 +5,6 @@
 
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/scoped_ptr.hpp>
 
 #include <ctime>
 
@@ -47,18 +46,6 @@ class BackPropagationNeuralNet {
 			for(int i = 0; i < nHiddenLayers - 1; ++i) {
 				weightHidden[i] = mat::Random(nHidden, nHidden + 1);
 			}
-			// test weights - http://www.generation5.org/content/2001/xornet.asp
-			// (i think they may be wrong about delta vals for output layer)
-			/*
-			double iw1[] = { 0.341232, 0.129952, -0.923123,
-							-0.115223, 0.570345, -0.328932 };
-			double iw2[] = { -0.993423, 0.164732, 0.752621 };
-
-			std::copy(iw1, iw1 + 6, w1.data().begin());
-			std::copy(iw2, iw2 + 3, w2.data().begin());
-			printlab(w1, "w1");
-			printlab(w2, "w2");
-			*/
 		}
 
 		virtual ~BackPropagationNeuralNet() {}
@@ -94,25 +81,13 @@ class BackPropagationNeuralNet {
 					}
 				}
 
-//				fs::path tempFile(weightFile.string() + ".check");
-//				fs::ofstream out(tempFile);
-//				out << weightIn << std::endl;
-//				for(int i = 0; i < nHiddenLayers - 1; ++i) {
-//					out << weightHidden[i] << std::endl;
-//				}
-//				out << weightOut << std::endl;
 			}
 		}
 
 		// calculate output for given input and current weights
-		vec calc(const vec &in, State &state) {
-			state.valueIn.tail(nIn) = in;
-			state.valueHidden[0].tail(nHidden) = sigmoid(weightIn * state.valueIn);
-			for(int i = 1; i < nHiddenLayers; ++i) {
-				state.valueHidden[i].tail(nHidden) = sigmoid(weightHidden[i - 1] * state.valueHidden[i - 1]);
-			}
-			state.out = sigmoid(weightOut * state.valueHidden[nHiddenLayers - 1]);
-			return state.out;
+		vec calc(const vec &in) {
+			State state;
+			return calc(in, state);
 		}
 
 		void train(const vec &in, const vec &ans) {
@@ -196,6 +171,16 @@ class BackPropagationNeuralNet {
 			}
 
 			return (-c + lambda * ss / 2) / lessons.size();
+		}
+
+		vec calc(const vec &in, State &state) {
+			state.valueIn.tail(nIn) = in;
+			state.valueHidden[0].tail(nHidden) = sigmoid(weightIn * state.valueIn);
+			for(int i = 1; i < nHiddenLayers; ++i) {
+				state.valueHidden[i].tail(nHidden) = sigmoid(weightHidden[i - 1] * state.valueHidden[i - 1]);
+			}
+			state.out = sigmoid(weightOut * state.valueHidden[nHiddenLayers - 1]);
+			return state.out;
 		}
 
 		// alpha is learning rate, lambda is regularisation parameter (minimise weight values)

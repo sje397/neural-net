@@ -20,11 +20,10 @@ int main(int /*argc*/, char *argv[])
 
 	nn.desc();
 
-	Net::State state;
 	for(int i = 0; i < 4; i++) {
 		in(0) = i & 1;
 		in(1) = (i >> 1) & 1;
-		out = nn.calc(in, state);
+		out = nn.calc(in);
 		std::cout << "output: " << out(0) << ", expected: " << (int(in(0)) ^ int(in(1))) << std::endl;
 	}
 
