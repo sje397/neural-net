@@ -90,10 +90,12 @@ class BackPropagationNeuralNet {
 			return calc(in, state);
 		}
 
+		// add a training example
 		void train(const vec &in, const vec &ans) {
 			lessons.push_back(std::make_pair(in, ans));
 		}
 
+		// perform gradient descent
 		void desc(real alpha = 0.1, real lambda = 1e-6, real threshold = 1e-8) {
 			outputs.resize(lessons.size());
 
@@ -122,28 +124,36 @@ class BackPropagationNeuralNet {
 				if(current - last_save > 60 * CLOCKS_PER_SEC) {
 					last_save = current;
 					start = clock();
-					if(!weightFile.empty()) {
-						fs::path tempFile(weightFile.string() + ".tmp");
-						fs::ofstream out(tempFile);
-						out << weightIn << std::endl;
-						for(int i = 0; i < nHiddenLayers - 1; ++i) {
-							out << weightHidden[i] << std::endl;
-						}
-						out << weightOut << std::endl;
-						fs::remove(weightFile);
-						fs::rename(tempFile, weightFile);
-					}
+
+					saveWeights();
+					
 					current = clock();
 					t = (current - start) / (double)CLOCKS_PER_SEC;
 					std::cout << "Save time: " << t << std::endl;
 				}
 			} while(c * std::fabs(c - run) > threshold);
+			saveWeights();
 		}
 
 	protected:
 		// apply sigmoid function element-wise to a vector
 		static vec sigmoid(const vec &in) {
 			return ((in.array() * -1).exp() + 1).pow(-1);
+		}
+		
+		// write the current weights to weightFile
+		void saveWeights() {
+			if(!weightFile.empty()) {
+				fs::path tempFile(weightFile.string() + ".tmp");
+				fs::ofstream out(tempFile);
+				out << weightIn << std::endl;
+				for(int i = 0; i < nHiddenLayers - 1; ++i) {
+					out << weightHidden[i] << std::endl;
+				}
+				out << weightOut << std::endl;
+				fs::remove(weightFile);
+				fs::rename(tempFile, weightFile);
+			}
 		}
 
 		// determine cost for current weights and lessons
