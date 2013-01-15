@@ -2,8 +2,7 @@
 
 #include <iostream>
 
-int main(int /*argc*/, char *argv[])
-{
+int main() {
 	srand(time(0));
 
 	// test using xor
